@@ -1,7 +1,9 @@
 USER = stefanom
-KEYBOARDS = iris
+KEYBOARDS = iris badwings
 PATH_KEYBOARD_iris = keebio/iris/rev6
 PATH_KEYMAPS_iris = keebio/iris
+PATH_KEYBOARD_badwings = hazel/bad_wings
+PATH_KEYMAPS_badwings = hazel/bad_wings
 
 all: $(KEYBOARDS)
 
@@ -20,7 +22,7 @@ $(KEYBOARDS):
 	# cd qmk_firmware; qmk lint -km $(USER) -kb ${PATH_KEYBOARD_$@} --strict
 
 	# run build
-	cd qmk_firmware; qmk flash -c -kb ${PATH_KEYBOARD_$@} -km $(USER) -e AVR_CFLAGS="-Wno-array-bounds"
+	cd qmk_firmware; qmk compile -c -kb ${PATH_KEYBOARD_$@} -km $(USER) -e AVR_CFLAGS="-Wno-array-bounds"
 
 	# cleanup symlinks
 	for f in $@; do \
