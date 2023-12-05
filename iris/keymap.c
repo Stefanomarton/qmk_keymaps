@@ -65,7 +65,7 @@ bool get_custom_auto_shifted_key(uint16_t keycode, keyrecord_t *record) {
 // Add combos for faster typing
 enum combos {
   JK,
-  HJ,
+  KL,
   GF,
   FD,
   ALT,
@@ -74,7 +74,7 @@ enum combos {
 };
 
 const uint16_t PROGMEM jk_combo[] = {LT(4,KC_J), RCTL_T(KC_K), COMBO_END};
-const uint16_t PROGMEM hj_combo[] = {RSFT_T(KC_H), LT(4,KC_J), COMBO_END};
+const uint16_t PROGMEM kl_combo[] = {RCTL_T(KC_K), LALT_T(KC_L), COMBO_END};
 const uint16_t PROGMEM alt_combo[] = {LT(1,KC_BSPC), LT(4,KC_TAB), COMBO_END};
 const uint16_t PROGMEM gf_combo[] = {KC_G, LGUI_T(KC_F), COMBO_END};
 const uint16_t PROGMEM fd_combo[] = {LGUI_T(KC_F), LCTL_T(KC_D), COMBO_END};
@@ -82,8 +82,8 @@ const uint16_t PROGMEM caps_combo[] = {LT(3,KC_ESC), LT(1,KC_BSPC), COMBO_END};
 const uint16_t PROGMEM chws_combo[] = {LT(3,KC_ESC), LT(4,KC_SPC), COMBO_END};
 
 combo_t key_combos[COMBO_COUNT] = {
-  [JK] = COMBO(jk_combo, KC_SCLN),
-  [HJ] = COMBO(hj_combo, KC_COLN),
+  [KL] = COMBO(kl_combo, KC_SCLN),
+  [JK] = COMBO(jk_combo, KC_COLN),
   [GF] = COMBO(gf_combo, KC_CIRC),
   [FD] = COMBO(fd_combo, S(KC_MINS)),
   [ALT] = COMBO(alt_combo, OSM(MOD_RALT)),
