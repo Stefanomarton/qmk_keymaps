@@ -65,6 +65,7 @@ layer_state_t layer_state_set_user(layer_state_t state) {
 enum layers {
   _ALPHA,
   _SYMBOL,
+  _SYMBOL2,
   _NUMBER,
   _NAVIGATION,
   LAYER_LENGTH
@@ -77,15 +78,21 @@ enum tapdances {
   TD_CBKT,
   TD_PARN,
   TD_LTGT,
-  TD_ATAB,
+  /* TD_ATAB, */
   TAPDANCE_LENGTH
 };
 
 enum combos {
-  COMBO_NAVIGATION,
-  COMBO_LENGTH
+  /* COMBO_NAVIGATION, */
+  /* COMBO_LENGTH, */
+  JK,
+  KL,
+  GF,
+  FD,
+  ALT,
+  CAPS,
+  CHWS
 };
-
 
 // begin tapdances
 #define KC_QESC     TD(TD_QESC)
@@ -93,28 +100,77 @@ enum combos {
 #define KC_CBKT     TD(TD_CBKT)
 #define KC_PARN     TD(TD_PARN)
 #define KC_LTGT     TD(TD_LTGT)
-#define KC_ATAB     TD(TD_ATAB)
+/* #define KC_ATAB     TD(TD_ATAB) */
 
-#define KC_GUIX     LGUI_T(KC_X)
-#define KC_ALTC     LALT_T(KC_C)
+#define KC_GUIM     LGUI_T(KC_M)
+#define KC_GUIV     LGUI_T(KC_V)
+
+#define KC_ALTS     LALT_T(KC_S)
+#define KC_ALTL     LALT_T(KC_L)
+
+#define KC_CTLD     LCTL_T(KC_D)
+#define KC_CTLK     RCTL_T(KC_K)
+
+#define KC_SFTQ     LSFT_T(KC_QUOTE)
+#define KC_SFTZ     LSFT_T(KC_Z)
+
+#define KC_SENT     LSFT_T(KC_ENT)
+#define KC_SDEL     LSFT_T(KC_DEL)
 
 // oneshots
 #define KC_OSFT   OSM(MOD_LSFT)
 #define KC_OALT   OSM(MOD_LALT)
 
 // layer changing
-#define KC_OSYM   OSL(_SYMBOL)
 #define KC_ONUM   LT(_NUMBER, KC_BSPC)
+#define KC_OSYM   LT(_SYMBOL, KC_TAB)
+#define KC_OSYM2  LT(_SYMBOL2, KC_ESC)
 
-uint16_t get_tapping_term(uint16_t keycode, keyrecord_t *record) {
-    switch(keycode) {
-        case KC_GUIX:
-        case KC_ALTC:
-            return TAPPING_TERM * 2;
-        default:
-            return TAPPING_TERM;
-    }
-}
+// cleaner keys
+#define KC_PLS S(KC_EQL)
+
+/* uint16_t get_tapping_term(uint16_t keycode, keyrecord_t *record) { */
+/*     switch(keycode) { */
+/*         case KC_GUIX: */
+/*         case KC_ALTC: */
+/*             return TAPPING_TERM * 2; */
+/*         default: */
+/*             return TAPPING_TERM; */
+/*     } */
+/* } */
+
+const uint16_t PROGMEM jk_combo[] = {KC_J, RCTL_T(KC_K), COMBO_END};
+const uint16_t PROGMEM kl_combo[] = {RCTL_T(KC_K), LALT_T(KC_L), COMBO_END};
+/* const uint16_t PROGMEM alt_combo[] = {KC_OSYM, KC_ONUM, COMBO_END}; */
+const uint16_t PROGMEM gf_combo[] = {KC_G, LGUI_T(KC_F), COMBO_END};
+const uint16_t PROGMEM fd_combo[] = {LGUI_T(KC_F), LCTL_T(KC_D), COMBO_END};
+const uint16_t PROGMEM caps_combo[] = {LT(3,KC_ESC), LT(1,KC_BSPC), COMBO_END};
+const uint16_t PROGMEM chws_combo[] = {LT(3,KC_ESC), LT(4,KC_SPC), COMBO_END};
+
+combo_t key_combos[COMBO_COUNT] = {
+  [KL] = COMBO(kl_combo, KC_SCLN),
+  [JK] = COMBO(jk_combo, KC_COLN),
+  [GF] = COMBO(gf_combo, KC_CIRC),
+  [FD] = COMBO(fd_combo, S(KC_MINS)),
+  [CAPS] = COMBO(caps_combo, CW_TOGG),
+  [CHWS] = COMBO(chws_combo, OSL(3)),
+};
+
+/* uint16_t get_combo_term(uint16_t index, combo_t *combo) { */
+/*   switch(index) { */
+/*     case ALT:// extending the combo term here helps reduce sticky layers some more. */
+/*       return 250; */
+/*   } */
+/*       return COMBO_TERM; */
+/* } */
+
+/* uint16_t COMBO_LEN = COMBO_LENGTH; */
+
+/* const uint16_t PROGMEM combo_navigation[] = { KC_OSYM, KC_ONUM, COMBO_END }; */
+/* combo_t key_combos[] = { */
+/*   [COMBO_NAVIGATION]        = COMBO(combo_navigation, OSL(_NAVIGATION)), */
+/* }; */
+
 
 // tapdances
 tap_dance_action_t tap_dance_actions[] = {
@@ -123,55 +179,40 @@ tap_dance_action_t tap_dance_actions[] = {
     [TD_CBKT]   = ACTION_TAP_DANCE_DOUBLE(KC_LCBR, KC_RCBR),
     [TD_PARN]   = ACTION_TAP_DANCE_DOUBLE(KC_LPRN, KC_RPRN),
     [TD_LTGT]   = ACTION_TAP_DANCE_DOUBLE(KC_LABK, KC_RABK),
-    [TD_ATAB]   = ACTION_TAP_DANCE_DOUBLE(KC_A, KC_TAB)
+    /* [TD_ATAB]   = ACTION_TAP_DANCE_DOUBLE(KC_TAB, (OSM(MOD_ALT))) */
 };
 // end tapdances
-
-uint16_t COMBO_LEN = COMBO_LENGTH;
-
-const uint16_t PROGMEM combo_navigation[] = { KC_OSYM, KC_ONUM, COMBO_END };
-combo_t key_combos[] = {
-  [COMBO_NAVIGATION]        = COMBO(combo_navigation, OSL(_NAVIGATION)),
-};
-
-uint16_t get_combo_term(uint16_t index, combo_t *combo) {
-  switch(index) {
-    case COMBO_NAVIGATION: // extending the combo term here helps reduce sticky layers some more.
-      return 250;
-    default:
-      return COMBO_TERM;
-  }
-}
-// end combos
-
 
 // begin layers
 const uint16_t PROGMEM keymaps[][MATRIX_ROWS][MATRIX_COLS] = {
   [_ALPHA] = LAYOUT_split_3x5_3(
     KC_Q,       KC_W,       KC_E,       KC_R,       KC_T,             KC_Y,       KC_U,       KC_I,       KC_O,       KC_P,
-    DRAG_SCROLL,       KC_S,       KC_D,       KC_F,       KC_G,             KC_H,       KC_J,       KC_K,       KC_L,       KC_SLSH,
-    KC_Z,       KC_X,       KC_C,       KC_V,       KC_B,             KC_N,       KC_M,       KC_COMM,    KC_DOT,     KC_QUOTE,
-                            KC_SPC,     KC_ESC,     KC_DEL,           KC_ENT,     KC_BSPC,    KC_TAB
-  ),
+    KC_A,       KC_ALTS,    KC_CTLD,    KC_F,      KC_G,             KC_H,       KC_J,       KC_CTLK,     KC_ALTL,   KC_SLSH,
+    KC_SFTZ,    KC_X,       KC_C,       KC_GUIV,    KC_B,             KC_N,       KC_GUIM,    KC_COMM,    KC_DOT,  KC_SFTQ,
+                            KC_SPC,     KC_OSYM2,     KC_SDEL,         KC_SENT,     KC_ONUM,    KC_OSYM
+  ),     
   [_SYMBOL] = LAYOUT_split_3x5_3(
-    KC_EXLM,    KC_AT,      KC_HASH,    KC_DLR,     KC_PERC,          KC_CIRC,     KC_AMPR,   KC_ASTR,    KC_PIPE,    KC_NO,
-    KC_GRV,     KC_TILD,      KC_UNDS,    KC_EQL,     KC_NO,          KC_SBKT,     KC_CBKT,   KC_PARN,    KC_LTGT,  KC_BACKSLASH,
-    KC_NO,      KC_NO,      KC_PLUS,    KC_MINS,    KC_NO,            KC_NO,       KC_NO,     KC_COLN,    KC_DOT,     KC_SCLN,
-                             KC_LCTL,    KC_OSYM,    KC_OSFT,          KC_SPC,     KC_ONUM,    KC_ENT
+    KC_F1,      KC_F2,       KC_F3,      KC_F4,      KC_F5,           KC_F6,      KC_F7,      KC_F8,      KC_F9,      KC_F10,
+    KC_EXLM,    KC_AT,       KC_HASH,    KC_DLR,     KC_PERC,         KC_AMPR,    KC_CIRC,    KC_ASTR,    KC_TILD,    KC_BSLS,
+    KC_F11,     KC_F12,      KC_F13,     KC_F14,     KC_F15,          KC_F16,     KC_F17,     KC_F18,     KC_F19,     KC_F20,
+                             KC_SPC,     KC_ESC,     KC_SDEL,          KC_SENT,     KC_ONUM,    KC_TAB
+  ),
+  [_SYMBOL2] = LAYOUT_split_3x5_3(
+    KC_NO,      KC_NO,      KC_NO,      KC_NO,      KC_NO,          KC_NO,      KC_NO,      KC_NO,    KC_NO,    KC_NO,
+    KC_NO,      S(KC_LBRC), KC_PLS,    S(KC_RBRC), KC_NO,          KC_NO,      KC_LPRN,    KC_MINS,  KC_RPRN,    KC_NO,
+    KC_NO,      KC_NO,      KC_NO,      KC_NO,      KC_NO,          KC_NO,      KC_LBRC,    KC_NO,    KC_LBRC,    KC_NO,
+                            KC_SPC,     KC_ESC,     KC_SDEL,        KC_SENT,   KC_EQL,      KC_OSYM
   ),
   [_NUMBER] = LAYOUT_split_3x5_3(
-    KC_NO,      KC_NO,      KC_NO,      KC_NO,      KC_NO,            KC_NO,      KC_NO,      KC_NO,      KC_NO,      KC_NO,
-    KC_1,       KC_2,       KC_3,       KC_4,       KC_5,             KC_6,       KC_7,       KC_8,       KC_9,       KC_0,
-    KC_NO,      KC_NO,      KC_NO,      KC_NO,      KC_NO,            KC_NO,      KC_NO,      KC_NO,      KC_DOT,     KC_NO,
-                            KC_LCTL,    KC_OSYM,    KC_OSFT,          KC_SPC,     KC_ONUM,    KC_ENT
+    KC_NO,      KC_7,       KC_8,       KC_9,      KC_NO,            KC_NO,      KC_NO,      KC_HOME,      KC_NO,      KC_NO,
+    KC_END,     KC_4,       KC_5,       KC_6,      KC_NO,            KC_NO,      KC_LEFT,    KC_DOWN,    KC_UP,      KC_RIGHT,
+    KC_NO,      KC_1,       KC_2,       KC_3,      KC_NO,            KC_NO,      KC_GUIM,      KC_NO,      KC_NO,     KC_NO,
+                            KC_MINS,    KC_0,   KC_SDEL,           KC_SENT,     KC_BSPC,    KC_NO
   ),
   [_NAVIGATION] = LAYOUT_split_3x5_3(
     KC_NO,      KC_F2,      KC_NO,      KC_NO,      KC_NO,          KC_NO,      KC_HOME,    KC_UP,      KC_END,     KC_BSPC,
-    KC_TAB,     KC_NO,      KC_NO,      KC_NO,      KC_NO,          KC_NO,      KC_LEFT,    KC_DOWN,    KC_RIGHT,   KC_ENT,
-    KC_NO,      KC_NO,      KC_NO,      KC_NO,      KC_NO,          KC_NO,      KC_MPRV,    KC_MPLY,    KC_MNXT,    KC_DEL,
-                            KC_LCTL,    KC_OSYM,    KC_OSFT,        KC_SPC,     KC_ONUM,    KC_ENT 
+    KC_TAB,     KC_NO,      KC_NO,      KC_NO,      KC_NO,          KC_NO,      KC_LEFT,    KC_DOWN,    KC_RIGHT,   KC_SENT,
+    KC_NO,      KC_NO,      KC_NO,      KC_NO,      KC_NO,          KC_NO,      KC_MPRV,    KC_MPLY,    KC_MNXT,    KC_SDEL,
+                            KC_LCTL,    KC_OSYM,    KC_OSFT,        KC_SPC,     KC_ONUM,    KC_SENT 
   )
 };
-
-
-
