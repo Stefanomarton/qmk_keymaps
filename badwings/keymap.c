@@ -1,6 +1,3 @@
-// Copyright 2023 Jason Hazel (@jasonhazel)
-// SPDX-License-Identifier: GPL-3.0-or-later
-
 #include QMK_KEYBOARD_H
 
 void pointing_device_init_user(void) {
@@ -18,18 +15,14 @@ enum layers {
 
 
 enum tapdances {
-  TD_QESC,
   TD_SBKT,
   TD_CBKT,
   TD_PARN,
   TD_LTGT,
-  /* TD_ATAB, */
-  TAPDANCE_LENGTH
+  TD_LPRN,
 };
 
 enum combos {
-  /* COMBO_NAVIGATION, */
-  /* COMBO_LENGTH, */
   JK,
   KL,
   GF,
@@ -39,27 +32,27 @@ enum combos {
   CHWS
 };
 
-// begin tapdances
-#define KC_QESC     TD(TD_QESC)
+//// Custom Keycose
 #define KC_SBKT     TD(TD_SBKT)
 #define KC_CBKT     TD(TD_CBKT)
 #define KC_PARN     TD(TD_PARN)
 #define KC_LTGT     TD(TD_LTGT)
-/* #define KC_ATAB     TD(TD_ATAB) */
 
+// custom gui tap
 #define KC_GUIM     LGUI_T(KC_M)
 #define KC_GUIV     LGUI_T(KC_V)
 
-
+// custom alt tap
 #define KC_ALTS     LALT_T(KC_S)
 #define KC_ALTL     LALT_T(KC_L)
 
+// custom ctrl tap
 #define KC_CTLD     LCTL_T(KC_D)
 #define KC_CTLK     RCTL_T(KC_K)
 
+// custom sft tap
 #define KC_SFTQ     LSFT_T(KC_QUOTE)
 #define KC_SFTZ     LSFT_T(KC_Z)
-
 #define KC_SENT     LSFT_T(KC_ENT)
 #define KC_SDEL     LSFT_T(KC_DEL)
 
@@ -73,6 +66,8 @@ enum combos {
 #define KC_OSYMa  LT(_SYMBOL, KC_F)
 #define KC_OSYMb  LT(_SYMBOL, KC_J)
 #define KC_LEFTS  LT(_SYMBOL, KC_LEFT)
+#define KC_DOWNC RCTL_T(KC_DOWN)
+#define KC_UPA   LALT_T(KC_UP)
 
 // Mouse keys
 #define KC_MSL KC_MS_BTN1 
@@ -86,19 +81,90 @@ enum combos {
 // cleaner keys
 #define KC_PLS S(KC_EQL)
 
-/* uint16_t get_tapping_term(uint16_t keycode, keyrecord_t *record) { */
-/*     switch(keycode) { */
-/*         case KC_GUIX: */
-/*         case KC_ALTC: */
-/*             return TAPPING_TERM * 2; */
-/*         default: */
-/*             return TAPPING_TERM; */
-/*     } */
-/* } */
+
+// Custom timing on key base
+bool get_custom_auto_shifted_key(uint16_t keycode, keyrecord_t *record) {
+   switch(keycode) {
+       case KC_V:
+           return true;
+       case KC_A:
+           return true;
+       case KC_MINUS:
+           return true;
+       case KC_I:
+           return true;
+       case KC_O:
+           return true;
+       default:
+           return false;
+}}
+
+/* custom hold-tap configuration */
+typedef struct {
+    uint16_t tap;
+    uint16_t hold;
+    uint16_t held;
+} tap_dance_tap_hold_t;
+
+bool process_record_user(uint16_t keycode, keyrecord_t *record) {
+    tap_dance_action_t *action;
+
+    switch (keycode) {
+        case TD(TD_SBKT):
+        case TD(TD_LPRN):  // list all tap dance keycodes with tap-hold configurations
+            action = &tap_dance_actions[TD_INDEX(keycode)];
+            if (!record->event.pressed && action->state.count && !action->state.finished) {
+                tap_dance_tap_hold_t *tap_hold = (tap_dance_tap_hold_t *)action->user_data;
+                tap_code16(tap_hold->tap);
+            }
+    }
+    return true;
+}
+
+void tap_dance_tap_hold_finished(tap_dance_state_t *state, void *user_data) {
+    tap_dance_tap_hold_t *tap_hold = (tap_dance_tap_hold_t *)user_data;
+
+    if (state->pressed) {
+        if (state->count == 1
+#ifndef PERMISSIVE_HOLD
+            && !state->interrupted
+#endif
+        ) {
+            register_code16(tap_hold->hold);
+            tap_hold->held = tap_hold->hold;
+        } else {
+            register_code16(tap_hold->tap);
+            tap_hold->held = tap_hold->tap;
+        }
+    }
+}
+
+void tap_dance_tap_hold_reset(tap_dance_state_t *state, void *user_data) {
+    tap_dance_tap_hold_t *tap_hold = (tap_dance_tap_hold_t *)user_data;
+
+    if (tap_hold->held) {
+        unregister_code16(tap_hold->held);
+        tap_hold->held = 0;
+    }
+}
+
+#define ACTION_TAP_DANCE_TAP_HOLD(tap, hold) \
+    { .fn = {NULL, tap_dance_tap_hold_finished, tap_dance_tap_hold_reset}, .user_data = (void *)&((tap_dance_tap_hold_t){tap, hold, 0}), }
+
+uint16_t get_tapping_term(uint16_t keycode, keyrecord_t *record) {
+    switch(keycode) {
+        case TD(TD_LPRN):
+        case TD(TD_SBKT):
+          return 90;
+        default:
+            return TAPPING_TERM;
+    }
+}
+
+// end
 
 const uint16_t PROGMEM jk_combo[] = {KC_OSYMb, RCTL_T(KC_K), COMBO_END};
 const uint16_t PROGMEM kl_combo[] = {RCTL_T(KC_K), LALT_T(KC_L), COMBO_END};
-/* const uint16_t PROGMEM alt_combo[] = {KC_OSYM, KC_ONUM, COMBO_END}; */
 const uint16_t PROGMEM gf_combo[] = {KC_G, LGUI_T(KC_F), COMBO_END};
 const uint16_t PROGMEM fd_combo[] = {KC_CTLD, KC_OSYMa, COMBO_END};
 const uint16_t PROGMEM caps_combo[] = {LT(3,KC_ESC), LT(1,KC_BSPC), COMBO_END};
@@ -113,30 +179,14 @@ combo_t key_combos[COMBO_COUNT] = {
   [CHWS] = COMBO(chws_combo, OSL(3)),
 };
 
-/* uint16_t get_combo_term(uint16_t index, combo_t *combo) { */
-/*   switch(index) { */
-/*     case ALT:// extending the combo term here helps reduce sticky layers some more. */
-/*       return 250; */
-/*   } */
-/*       return COMBO_TERM; */
-/* } */
-
-/* uint16_t COMBO_LEN = COMBO_LENGTH; */
-
-/* const uint16_t PROGMEM combo_navigation[] = { KC_OSYM, KC_ONUM, COMBO_END }; */
-/* combo_t key_combos[] = { */
-/*   [COMBO_NAVIGATION]        = COMBO(combo_navigation, OSL(_NAVIGATION)), */
-/* }; */
-
 
 // tapdances
 tap_dance_action_t tap_dance_actions[] = {
-    [TD_QESC]   = ACTION_TAP_DANCE_DOUBLE(KC_Q, KC_ESC),
-    [TD_SBKT]   = ACTION_TAP_DANCE_DOUBLE(KC_LBRC, KC_RBRC),
-    [TD_CBKT]   = ACTION_TAP_DANCE_DOUBLE(KC_LCBR, KC_RCBR),
-    [TD_PARN]   = ACTION_TAP_DANCE_DOUBLE(KC_LPRN, KC_RPRN),
-    [TD_LTGT]   = ACTION_TAP_DANCE_DOUBLE(KC_LABK, KC_RABK),
-    /* [TD_ATAB]   = ACTION_TAP_DANCE_DOUBLE(KC_TAB, (OSM(MOD_ALT))) */
+    [TD_LPRN]  = ACTION_TAP_DANCE_TAP_HOLD(KC_LPRN, KC_RPRN),
+    [TD_SBKT]  = ACTION_TAP_DANCE_TAP_HOLD(KC_LBRC, KC_RBRC),
+    [TD_CBKT]  = ACTION_TAP_DANCE_DOUBLE(KC_LCBR, KC_RCBR),
+    [TD_PARN]  = ACTION_TAP_DANCE_DOUBLE(KC_LPRN, KC_RPRN),
+    [TD_LTGT]  = ACTION_TAP_DANCE_DOUBLE(KC_LABK, KC_RABK),
 };
 // end tapdances
 
@@ -156,14 +206,14 @@ const uint16_t PROGMEM keymaps[][MATRIX_ROWS][MATRIX_COLS] = {
   ),
   [_SYMBOL] = LAYOUT_split_3x5_3(
     KC_NO,      KC_AT,      KC_HASH,    KC_NO,      KC_NO,          KC_NO,     S(KC_COMM),  KC_EQL,    S(KC_DOT),  KC_NO,
-    KC_EXLM,    KC_PERC,    KC_CIRC,    KC_DLR,     KC_AT,          KC_NO,     KC_PARN,     KC_MINS,   KC_SBKT,    KC_BSLS,
+    KC_EXLM,    KC_PERC,    KC_CIRC,    KC_DLR,     KC_AT,          KC_NO,     TD(TD_LPRN), KC_MINS,   KC_SBKT,    KC_BSLS,
     KC_NO,      KC_AMPR,    KC_ASTR,    KC_TILD,    KC_NO,          KC_NO,     KC_CBKT,     KC_PLS,    KC_RBRC,    KC_NO,
                             KC_SPC,     KC_ESC,     KC_SDEL,        KC_SENT,   S(KC_MINS),  KC_FUNCT
   ),
   [_NUMBER] = LAYOUT_split_3x5_3(
     KC_NO,      KC_7,       KC_8,       KC_9,      KC_NO,            KC_NO,    KC_WORDL,    KC_HOME,    KC_WORDR,  KC_NO,
-    KC_END,     KC_4,       KC_5,       KC_6,      KC_NO,            KC_NO,    KC_LEFTS,    KC_DOWN,    KC_UP,     KC_RIGHT,
-    KC_NO,      KC_1,       KC_2,       KC_3,      KC_NO,            KC_NO,    KC_GUIM,     KC_NO,      KC_NO,     KC_NO,
+    KC_END,     KC_4,       KC_5,       KC_6,      KC_NO,            KC_NO,    KC_LEFTS,    KC_DOWNC,   KC_UPA,     KC_RIGHT,
+    KC_NO,      KC_1,       KC_2,       KC_3,      KC_NO,            KC_NO,    KC_GUIM,     KC_PGDN,    KC_PGUP,     KC_NO,
                             KC_MINS,    KC_0,      KC_SDEL,          KC_SENT,  KC_BSPC,     KC_NO
   ),
   [5] = LAYOUT_split_3x5_3(
