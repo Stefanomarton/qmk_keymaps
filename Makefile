@@ -1,7 +1,9 @@
 USER = stefanom
-KEYBOARDS = iris badwings
+KEYBOARDS = iris badwings iris-gaming
 PATH_KEYBOARD_iris = keebio/iris/rev6
 PATH_KEYMAPS_iris = keebio/iris
+PATH_KEYBOARD_iris-gaming = keebio/iris/rev6
+PATH_KEYMAPS_iris-gaming = keebio/iris
 PATH_KEYBOARD_badwings = hazel/bad_wings
 PATH_KEYMAPS_badwings = hazel/bad_wings
 
@@ -18,11 +20,14 @@ $(KEYBOARDS):
 	# add new symlinks
 	ln -s $(shell pwd)/$@ qmk_firmware/keyboards/${PATH_KEYMAPS_$@}/keymaps/$(USER)
 
-	# run lint check
-	# cd qmk_firmware; qmk lint -km $(USER) -kb ${PATH_KEYBOARD_$@} --strict
-
 	# run build
-	cd qmk_firmware; qmk compile -c -kb ${PATH_KEYBOARD_$@} -km $(USER) -e AVR_CFLAGS="-Wno-array-bounds"
+	if [ "$@" = "iris" ]; then \
+		cd qmk_firmware; qmk flash -c -kb ${PATH_KEYBOARD_$@} -km $(USER) -e AVR_CFLAGS="-Wno-array-bounds"; \
+	elif [ "$@" = "iris-gaming" ]; then \
+		cd qmk_firmware; qmk flash -c -kb ${PATH_KEYBOARD_$@} -km $(USER) -e AVR_CFLAGS="-Wno-array-bounds"; \
+	else \
+		cd qmk_firmware; qmk compile -c -kb ${PATH_KEYBOARD_$@} -km $(USER) -e AVR_CFLAGS="-Wno-array-bounds"; \
+	fi
 
 	# cleanup symlinks
 	for f in $@; do \
